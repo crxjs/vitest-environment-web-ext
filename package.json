@@ -1,0 +1,72 @@
+{
+  "name": "vitest-environment-web-ext",
+  "type": "module",
+  "version": "0.0.0",
+  "packageManager": "pnpm@10.25.0",
+  "description": "E2E testing for browser extensions with Vitest and Playwright",
+  "author": "FliPPeDround <flippedround@qq.com>",
+  "license": "MIT",
+  "funding": "https://afdian.com/a/flippedround",
+  "homepage": "https://github.com/crxjs/vitest-environment-web-ext#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/crxjs/vitest-environment-web-ext.git"
+  },
+  "bugs": "https://github.com/crxjs/vitest-environment-web-ext/issues",
+  "keywords": [
+    "vitest",
+    "playwright",
+    "browser-extension",
+    "e2e-testing",
+    "web-ext",
+    "crxjs"
+  ],
+  "sideEffects": false,
+  "exports": {
+    ".": "./dist/index.mjs",
+    "./package.json": "./package.json",
+    "./types": {
+      "types": "./global.d.ts"
+    }
+  },
+  "main": "./dist/index.mjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
+  "files": [
+    "dist",
+    "global.d.ts"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "lint": "eslint",
+    "lint:fix": "eslint --fix",
+    "prepublishOnly": "nr build",
+    "release": "bumpp",
+    "typecheck": "tsc",
+    "prepare": "simple-git-hooks"
+  },
+  "dependencies": {
+    "playwright": "^1.58.2"
+  },
+  "devDependencies": {
+    "@antfu/eslint-config": "^6.6.1",
+    "@antfu/ni": "^28.0.0",
+    "@types/node": "^25.0.1",
+    "bumpp": "^10.3.2",
+    "eslint": "^9.39.2",
+    "lint-staged": "^16.2.7",
+    "publint": "^0.3.16",
+    "simple-git-hooks": "^2.13.1",
+    "tsdown": "^0.17.3",
+    "typescript": "^5.9.3",
+    "vite": "^7.2.7",
+    "vitest": "^4.0.15"
+  },
+  "simple-git-hooks": {
+    "pre-commit": "pnpm i --frozen-lockfile --ignore-scripts --offline && npx lint-staged"
+  },
+  "lint-staged": {
+    "*": "eslint --fix"
+  }
+}

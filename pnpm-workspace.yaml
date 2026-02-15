@@ -1,0 +1,8 @@
+ignoreWorkspaceRootCheck: true
+shellEmulator: true
+
+packages:
+  - playground
+  - docs
+  - packages/*
+  - examples/*
