@@ -47,11 +47,16 @@
     "prepare": "simple-git-hooks"
   },
   "dependencies": {
+    "fs-extra": "^11.3.3",
+    "jsesc": "^3.1.0",
+    "pathe": "^2.0.3",
     "playwright": "^1.58.2"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^6.6.1",
     "@antfu/ni": "^28.0.0",
+    "@types/fs-extra": "^11.0.4",
+    "@types/jsesc": "^3.0.3",
     "@types/node": "^25.0.1",
     "bumpp": "^10.3.2",
     "eslint": "^9.39.2",
