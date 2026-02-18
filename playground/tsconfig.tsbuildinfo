@@ -1,0 +1,1 @@
+{"root":["./manifest.config.ts","./vite.config.ts","./vitest.config.ts","./src/components/helloworld.vue","./src/content/main.ts","./src/content/views/app.vue","./src/popup/app.vue","./src/popup/main.ts","./src/sidepanel/app.vue","./src/sidepanel/main.ts","./test/index.test.ts"],"version":"5.8.3"}
