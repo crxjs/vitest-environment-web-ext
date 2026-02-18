@@ -31,6 +31,8 @@ export class WebExtBrowser {
   }
 
   loadWebExt(path: string) {
+    this.validateWebExt(path)
+
     const args = [
       `--disable-extensions-except=${path}`,
       `--load-extension=${path}`,
@@ -38,6 +40,23 @@ export class WebExtBrowser {
     ]
 
     this.webExtArgs = args
+  }
+
+  private validateWebExt(extPath: string) {
+    const manifestPath = path.join(extPath, 'manifest.json')
+
+    if (!fs.existsSync(extPath)) {
+      throw new Error(`Extension path does not exist: ${extPath}`)
+    }
+
+    const stat = fs.statSync(extPath)
+    if (!stat.isDirectory()) {
+      throw new Error(`Extension path must be a directory: ${extPath}`)
+    }
+
+    if (!fs.existsSync(manifestPath)) {
+      throw new Error(`Extension manifest.json not found at: ${manifestPath}`)
+    }
   }
 
   async getPage(test: RegExp | string) {

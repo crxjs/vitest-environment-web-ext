@@ -50,7 +50,8 @@
     "fs-extra": "^11.3.3",
     "jsesc": "^3.1.0",
     "pathe": "^2.0.3",
-    "playwright": "^1.58.2"
+    "playwright": "^1.58.2",
+    "tinyexec": "^1.0.2"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^6.6.1",
