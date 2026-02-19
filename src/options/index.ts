@@ -1,5 +1,8 @@
 import type { EnvironmentOptions } from 'vitest/node'
 import type { WebExtEnvironmentOptions } from './types'
+import process from 'node:process'
+import { deepMerge } from '@antfu/utils'
+import path from 'pathe'
 
 function validateOptions(options: EnvironmentOptions['web-ext']) {
   if (!options?.path) {
@@ -17,7 +20,13 @@ export function resolveOptions(options: EnvironmentOptions['web-ext']): WebExtEn
   const defaultOptions: Partial<WebExtEnvironmentOptions> = {
     compiler: false,
     autoLaunch: true,
+    playwright: {
+      browser: 'chromium',
+      headless: true,
+      slowMo: 100,
+      cacheDir: path.join(process.cwd(), './.vitest-web-ext-cache'),
+    },
   }
 
-  return Object.assign({}, defaultOptions, options)
+  return deepMerge(defaultOptions, options ?? {}) as WebExtEnvironmentOptions
 }

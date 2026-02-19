@@ -12,23 +12,19 @@ class WebExtEnvironment implements Environment {
 
     await compileWebExt(webExtOptions.compiler)
 
-    const browser = new WebExtBrowser({
-      browser: 'chromium',
-      cacheDir: './tmp',
-      headless: false,
-      slowMo: 0,
-    })
+    const browser = new WebExtBrowser(webExtOptions.playwright)
 
     if (webExtOptions.autoLaunch) {
       browser.loadWebExt(webExtOptions.path)
       await browser.launch()
     }
 
-    // await browser.launch()
-    // global.browser = browser
+    global.browser = browser
+    global.context = browser.context
 
     return {
       teardown: async () => {
+        // console.log('teardown')
         // browser.close()
       },
     }

@@ -30,6 +30,9 @@ importers:
       '@antfu/ni':
         specifier: ^28.0.0
         version: 28.2.0
+      '@antfu/utils':
+        specifier: ^9.3.0
+        version: 9.3.0
       '@types/fs-extra':
         specifier: ^11.0.4
         version: 11.0.4
@@ -171,6 +174,9 @@ packages:
     resolution: {integrity: sha512-+pnatqUMTpi1g/VxbaTsX9UxibTp5oWCMbfUAQPV91UL9lTIMmlU2uvG8bDETDJ0kJdsZT8zLBctKLJOeL5jmg==}
     engines: {node: '>=20'}
     hasBin: true
+
+  '@antfu/utils@9.3.0':
+    resolution: {integrity: sha512-9hFT4RauhcUzqOE4f1+frMKLZrgNog5b06I7VmZQV1BkvwvqrbC8EBZf3L1eEL2AKb6rNKjER0sEvJiSP1FXEA==}
 
   '@babel/generator@7.29.1':
     resolution: {integrity: sha512-qsaF+9Qcm2Qv8SRIMMscAvG4O3lJ0F1GuMo5HR/Bp02LopNgnZBC/EkbevHFeGs4ls/oPz9v+Bsmzbkbe+0dUw==}
@@ -2439,6 +2445,7 @@ packages:
   tsdown@0.17.4:
     resolution: {integrity: sha512-z+kNuv1rwM1POQIufDUVrdNc/uGy0ueRVafCyDH39IdHxin4JXgB8DNGSPoqdIpcOpqUoRbNreK8NxENFmlhKw==}
     engines: {node: '>=20.19.0'}
+    deprecated: Including an unexpected breaking change (copy behavior)
     hasBin: true
     peerDependencies:
       '@arethetypeswrong/core': ^0.18.1
@@ -2742,6 +2749,8 @@ snapshots:
       package-manager-detector: 1.6.0
       tinyexec: 1.0.2
       tinyglobby: 0.2.15
+
+  '@antfu/utils@9.3.0': {}
 
   '@babel/generator@7.29.1':
     dependencies:

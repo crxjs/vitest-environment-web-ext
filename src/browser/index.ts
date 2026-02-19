@@ -1,5 +1,5 @@
 import type { BrowserContext } from 'playwright'
-import type { BrowserOptions } from './types'
+import type { WebExtEnvironmentOptions } from '@/options/types'
 import path from 'node:path'
 import fs from 'fs-extra'
 import { chromium, firefox, webkit } from 'playwright'
@@ -12,14 +12,14 @@ export class WebExtBrowser {
     webkit,
   } as const
 
-  private context: BrowserContext | null = null
+  public context: BrowserContext | null = null
   private webExtArgs: string[] = []
 
-  constructor(private options: BrowserOptions) {}
+  constructor(private options: WebExtEnvironmentOptions['playwright']) {}
 
   async launch() {
     const browserType = WebExtBrowser.browsers[this.options.browser]
-    const dataDir = path.join(this.options.cacheDir!, `.${this.options.browser}`)
+    const dataDir = path.join(this.options.cacheDir, `.${this.options.browser}`)
     await fs.remove(dataDir)
     const context = await browserType.launchPersistentContext(dataDir, {
       headless: this.options.headless,
@@ -30,12 +30,13 @@ export class WebExtBrowser {
     this.context = context
   }
 
-  loadWebExt(path: string) {
-    this.validateWebExt(path)
+  loadWebExt(extensionPath: string) {
+    const resolvedPath = path.resolve(extensionPath)
+    this.validateWebExt(resolvedPath)
 
     const args = [
-      `--disable-extensions-except=${path}`,
-      `--load-extension=${path}`,
+      `--disable-extensions-except=${resolvedPath}`,
+      `--load-extension=${resolvedPath}`,
       '--disable-features=ExtensionDisableUnsupportedDeveloper',
     ]
 
