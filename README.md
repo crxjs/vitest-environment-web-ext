@@ -1,4 +1,4 @@
-# [WIP] vitest-environment-web-ext
+# vitest-environment-web-ext
 
 A Vitest environment for end-to-end testing browser extensions with Playwright.
 
