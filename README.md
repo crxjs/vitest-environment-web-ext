@@ -2,6 +2,8 @@
 
 A Vitest environment for end-to-end testing browser extensions with Playwright.
 
+## [Document](https://crxjs.dev/guide/test/installation)
+
 ## Features
 
 - E2E testing for Chrome extensions
