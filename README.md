@@ -4,9 +4,8 @@ A Vitest environment for end-to-end testing browser extensions with Playwright.
 
 ## Features
 
-- E2E testing for Chrome, Firefox, and Edge extensions
+- E2E testing for Chrome extensions
 - Supports MV3 manifest versions
-- Auto-loads your extension and provides extension ID
 - TypeScript ready
 
 ## Installation
