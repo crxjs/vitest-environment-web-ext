@@ -7,6 +7,7 @@ export default antfu(
     pnpm: false,
     rules: {
       'ts/explicit-function-return-type': 'off',
+      'antfu/no-import-dist': 'off',
     },
   },
 )

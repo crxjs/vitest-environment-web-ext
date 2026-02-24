@@ -8,10 +8,6 @@ export default defineConfig({
       'web-ext': {
         path: './dist',
         compiler: false,
-        playwright: {
-          browser: 'chromium',
-          headless: false,
-        },
       },
     },
   },

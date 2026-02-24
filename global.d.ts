@@ -1,4 +1,5 @@
 import type { BrowserContext } from 'playwright'
+import type { WebExtBrowser } from './dist/index.d.mts'
 import 'vitest/node'
 
 declare module 'vitest/node' {
@@ -33,18 +34,12 @@ declare module 'vitest/node' {
        * Options for Playwright.
        */
       playwright?: {
-        /**
-         * Browser to use for testing.
-         *
-         * @default 'chromium'
-         */
-        browser?: 'chromium' | 'firefox' | 'webkit'
-        /**
-         * Whether to run the browser in headless mode.
-         *
-         * @default true
-         */
-        headless?: boolean
+        // /**
+        //  * Browser to use for testing.
+        //  *
+        //  * @default 'chromium'
+        //  */
+        // browser?: 'chromium' | 'firefox' | 'webkit'
         /**
          * Slow down Playwright operations by the given amount of milliseconds.
          *
@@ -52,11 +47,15 @@ declare module 'vitest/node' {
          */
         slowMo?: number
         /**
-         * Directory to cache the browser binary.
+         * Directory to cache the browser user data.
          *
-         * @default path.join(process.cwd(), './.vitest-web-ext-cache')
+         * - `true`: Use default path `path.join(process.cwd(), './.vitest-web-ext-cache')`
+         * - `string`: Use custom path
+         * - `false`: Disable caching
+         *
+         * @default false
          */
-        cacheDir?: string
+        userDataDir?: string | boolean
       }
     }
   }
@@ -64,4 +63,5 @@ declare module 'vitest/node' {
 
 declare global {
   const context: BrowserContext
+  const browser: WebExtBrowser
 }

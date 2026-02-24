@@ -17,16 +17,26 @@ function validateOptions(options: EnvironmentOptions['web-ext']) {
 export function resolveOptions(options: EnvironmentOptions['web-ext']): WebExtEnvironmentOptions {
   validateOptions(options)
 
+  const defaultUserDataDir = path.join(process.cwd(), './.vitest-web-ext-cache')
+
   const defaultOptions: Partial<WebExtEnvironmentOptions> = {
     compiler: false,
     autoLaunch: true,
     playwright: {
-      browser: 'chromium',
-      headless: true,
+      // browser: 'chromium',
       slowMo: 100,
-      cacheDir: path.join(process.cwd(), './.vitest-web-ext-cache'),
+      userDataDir: false,
     },
   }
 
-  return deepMerge(defaultOptions, options ?? {}) as WebExtEnvironmentOptions
+  const resolved = deepMerge(defaultOptions, options ?? {}) as WebExtEnvironmentOptions
+
+  if (resolved.playwright?.userDataDir === true) {
+    resolved.playwright.userDataDir = defaultUserDataDir
+  }
+  if (resolved.playwright?.userDataDir === false) {
+    resolved.playwright.userDataDir = ''
+  }
+
+  return resolved
 }
