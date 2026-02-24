@@ -16,7 +16,7 @@ pnpm add -D vitest-environment-web-ext
 
 ## Quick Start
 
-// vitest.config.ts
+> vitest.config.ts
 ```ts
 import { defineConfig } from 'vitest/config'
 
@@ -25,4 +25,14 @@ export default defineConfig({
     environment: 'web-ext',
   },
 })
+```
+> tsconfig.json
+```json
+{
+  "compilerOptions": {
+    "types": [
+      "vitest-environment-web-ext/types"
+    ]
+  }
+}
 ```
