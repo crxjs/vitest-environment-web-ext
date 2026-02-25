@@ -74,4 +74,16 @@ export class WebExtBrowser {
     const sidePanelPath = await this.loader.getSidePanelPath()
     return this.factory.createExtPage(this.context, sidePanelPath, this.extensionId)
   }
+
+  /**
+   * Gets the service worker of the extension.
+   * @returns The service worker as a Playwright Worker.
+   */
+  async getServiceWorker() {
+    let [serviceWorker] = this.context.serviceWorkers() || []
+    if (!serviceWorker) {
+      serviceWorker = await this.context.waitForEvent('serviceworker')
+    }
+    return serviceWorker
+  }
 }
