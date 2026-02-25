@@ -39,15 +39,4 @@ export class WebExtBrowserManager {
       this._context = null
     }
   }
-
-  async getExtensionId(context: BrowserContext): Promise<string> {
-    let serviceWorker = context.serviceWorkers()[0]
-
-    if (!serviceWorker) {
-      serviceWorker = await context.waitForEvent('serviceworker')
-    }
-
-    const match = serviceWorker.url().match(/chrome-extension:\/\/([^/]+)/)
-    return match?.[1] ?? ''
-  }
 }

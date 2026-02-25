@@ -1,14 +1,15 @@
 import type { BrowserContext, Page } from 'playwright'
 import type { WebExtEnvironmentOptions } from '@/options/types'
 import { WebExtBrowserManager } from './WebExtBrowserManager'
+import { WebExtFactory } from './WebExtFactory'
 import { WebExtLoader } from './WebExtLoader'
-import { WebExtPageFactory } from './WebExtPageFactory'
 
 export class WebExtBrowser {
   private loader: WebExtLoader
   private manager: WebExtBrowserManager
-  private pageFactory: WebExtPageFactory
+  private factory: WebExtFactory
   private _context: BrowserContext | null = null
+  private extensionId: string = ''
 
   /**
    * Gets the Playwright browser context.
@@ -28,7 +29,7 @@ export class WebExtBrowser {
   constructor(private options: WebExtEnvironmentOptions) {
     this.loader = new WebExtLoader()
     this.manager = new WebExtBrowserManager(options.playwright)
-    this.pageFactory = new WebExtPageFactory()
+    this.factory = new WebExtFactory()
   }
 
   /**
@@ -38,6 +39,7 @@ export class WebExtBrowser {
   async launch(path?: string): Promise<void> {
     this.loader.load(path ?? this.options.path)
     this._context = await this.manager.launch(this.loader.extensionPath)
+    this.extensionId = await this.loader.getExtensionId(this.context, this.options.targetUrl)
   }
 
   /**
@@ -52,7 +54,7 @@ export class WebExtBrowser {
    * @returns The extension ID as a string.
    */
   async getExtensionId(): Promise<string> {
-    return this.manager.getExtensionId(this.context)
+    return this.extensionId
   }
 
   /**
@@ -61,7 +63,7 @@ export class WebExtBrowser {
    */
   async getPopupPage(): Promise<Page> {
     const popupPath = await this.loader.getPopupPath()
-    return this.pageFactory.createExtPage(this.context, popupPath)
+    return this.factory.createExtPage(this.context, popupPath, this.extensionId)
   }
 
   /**
@@ -70,6 +72,6 @@ export class WebExtBrowser {
    */
   async getSidePanelPage(): Promise<Page> {
     const sidePanelPath = await this.loader.getSidePanelPath()
-    return this.pageFactory.createExtPage(this.context, sidePanelPath)
+    return this.factory.createExtPage(this.context, sidePanelPath, this.extensionId)
   }
 }

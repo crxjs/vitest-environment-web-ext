@@ -31,6 +31,14 @@ declare module 'vitest/node' {
        */
       autoLaunch?: boolean
       /**
+       * URL used to automatically retrieve the extension ID.
+       *
+       * Configure a URL that can trigger the browser extension when automatic extension ID retrieval fails.
+       *
+       * @default 'https://www.example.com'
+       */
+      targetUrl?: string
+      /**
        * Options for Playwright.
        */
       playwright?: {

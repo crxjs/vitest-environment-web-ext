@@ -22,6 +22,7 @@ export function resolveOptions(options: EnvironmentOptions['web-ext']): WebExtEn
   const defaultOptions: Partial<WebExtEnvironmentOptions> = {
     compiler: false,
     autoLaunch: true,
+    targetUrl: 'https://www.example.com',
     playwright: {
       // browser: 'chromium',
       slowMo: 100,

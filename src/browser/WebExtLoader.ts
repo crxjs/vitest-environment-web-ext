@@ -1,3 +1,4 @@
+import type { BrowserContext } from 'playwright'
 import path from 'node:path'
 import fs from 'fs-extra'
 
@@ -72,5 +73,34 @@ export class WebExtLoader {
       manifest => manifest.side_panel?.default_path,
       'side_panel',
     )
+  }
+
+  private extractExtensionId(url: string): string | undefined {
+    return url.match(/chrome-extension:\/\/([^/]+)/)?.[1]
+  }
+
+  async getExtensionId(context: BrowserContext, targetUrl: string): Promise<string> {
+    const workers = context.serviceWorkers()[0]
+    if (workers) {
+      const id = this.extractExtensionId(workers.url())
+      if (id)
+        return id
+    }
+
+    const extensionUrlPromise = context.waitForEvent('request', req =>
+      req.url().startsWith('chrome-extension://'))
+
+    const page = await context.newPage()
+    const navigationPromise = page.goto(targetUrl)
+
+    try {
+      await Promise.race([extensionUrlPromise, navigationPromise])
+      const req = await extensionUrlPromise
+      return this.extractExtensionId(req.url()) ?? ''
+    }
+    catch (error) {
+      console.error(error)
+      return ''
+    }
   }
 }
