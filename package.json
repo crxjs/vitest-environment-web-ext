@@ -46,6 +46,10 @@
     "typecheck": "tsc",
     "prepare": "simple-git-hooks"
   },
+  "peerDependencies": {
+    "playwright": "*",
+    "vitest": "*"
+  },
   "dependencies": {
     "fs-extra": "^11.3.3",
     "jsesc": "^3.1.0",

@@ -12,10 +12,9 @@ class WebExtEnvironment implements Environment {
 
     await compileWebExt(webExtOptions.compiler)
 
-    const browser = new WebExtBrowser(webExtOptions.playwright)
+    const browser = new WebExtBrowser(webExtOptions)
 
     if (webExtOptions.autoLaunch) {
-      browser.loadWebExt(webExtOptions.path)
       await browser.launch()
     }
 
@@ -23,7 +22,7 @@ class WebExtEnvironment implements Environment {
     global.context = browser.context
 
     return {
-      teardown: async () => {
+      teardown: () => {
         browser.close()
       },
     }

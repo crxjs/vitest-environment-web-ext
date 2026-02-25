@@ -7,7 +7,6 @@ export default defineConfig({
     environmentOptions: {
       'web-ext': {
         path: './dist',
-        compiler: false,
       },
     },
   },
