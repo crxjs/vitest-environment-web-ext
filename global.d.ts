@@ -64,6 +64,12 @@ declare module 'vitest/node' {
          * @default false
          */
         userDataDir?: string | boolean
+        /**
+         * Whether to automatically open the DevTools panel when browser starts.
+         *
+         * @default false
+         */
+        devtools?: boolean
       }
     }
   }

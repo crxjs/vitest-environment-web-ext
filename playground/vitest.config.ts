@@ -7,6 +7,9 @@ export default defineConfig({
     environmentOptions: {
       'web-ext': {
         path: './dist',
+        playwright: {
+          devtools: true,
+        },
       },
     },
   },

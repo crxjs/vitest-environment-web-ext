@@ -24,6 +24,10 @@ export class WebExtBrowserManager {
       '--disable-features=ExtensionDisableUnsupportedDeveloper',
     ]
 
+    if (this.options.devtools) {
+      webExtArgs.push('--auto-open-devtools-for-tabs')
+    }
+
     this._context = await chromium.launchPersistentContext(userDataDir, {
       headless: false,
       slowMo: this.options.slowMo,

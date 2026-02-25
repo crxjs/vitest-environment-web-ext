@@ -27,6 +27,7 @@ export function resolveOptions(options: EnvironmentOptions['web-ext']): WebExtEn
       // browser: 'chromium',
       slowMo: 100,
       userDataDir: false,
+      devtools: false,
     },
   }
 
