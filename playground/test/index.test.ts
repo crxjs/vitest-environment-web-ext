@@ -15,7 +15,7 @@ describe('web-ext environment', () => {
 
   it('contains the Vue app', async () => {
     const page = await context.newPage()
-    await page.goto(`https://www.bing.com`)
+    await page.goto(`https://www.example.com`)
     const toggleButton = await page.waitForSelector('.toggle-button')
     await toggleButton.click()
     const appContainer = await page.waitForSelector('.popup-content')

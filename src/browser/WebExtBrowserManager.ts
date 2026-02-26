@@ -1,6 +1,5 @@
 import type { BrowserContext } from 'playwright'
 import type { WebExtEnvironmentOptions } from '@/options/types'
-import fs from 'fs-extra'
 import { chromium } from 'playwright'
 
 export class WebExtBrowserManager {
@@ -14,9 +13,6 @@ export class WebExtBrowserManager {
 
   async launch(extensionPath: string): Promise<BrowserContext> {
     const userDataDir = this.options.userDataDir as string
-    if (this.options.userDataDir) {
-      await fs.remove(userDataDir)
-    }
 
     const webExtArgs = [
       `--disable-extensions-except=${extensionPath}`,

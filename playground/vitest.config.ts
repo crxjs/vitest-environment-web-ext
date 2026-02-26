@@ -9,6 +9,7 @@ export default defineConfig({
         path: './dist',
         playwright: {
           devtools: true,
+          userDataDir: true,
         },
       },
     },
