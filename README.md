@@ -38,3 +38,46 @@ export default defineConfig({
   }
 }
 ```
+
+## Options
+
+```ts
+import { defineConfig } from 'vitest/config'
+
+export default defineConfig({
+  test: {
+    environment: 'web-ext',
+    environmentOptions: {
+      'web-ext': {
+        path: './dist',
+        compiler: false,
+        autoLaunch: true,
+        extensionId: '',
+        detectExtensionId: true,
+        detectTimeout: 15_000,
+        targetUrl: 'https://www.example.com',
+        playwright: {
+          slowMo: 100,
+          headless: false,
+          userDataDir: false,
+          devtools: false,
+        },
+      },
+    },
+  },
+})
+```
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `path` | – (required) | Extension directory or `.crx`/`.xpi` file |
+| `compiler` | `false` | Shell command executed before tests run |
+| `autoLaunch` | `true` | Load and launch the browser + extension during environment setup |
+| `extensionId` | – | Explicit extension id; skips detection entirely when set. Useful for offline environments or extensions without a service worker (e.g. Manifest V2) |
+| `detectExtensionId` | `true` | Detect the extension id by opening a tab at `targetUrl`. Disable for offline/air-gapped environments, when `getPopupPage()` / `getSidePanelPage()` are not used, or when `extensionId` is set |
+| `detectTimeout` | `15000` | Max time in ms spent detecting the extension id |
+| `targetUrl` | `'https://www.example.com'` | URL opened while detecting the id; the tab is closed automatically |
+| `playwright.slowMo` | `100` | Slow down Playwright operations (ms) |
+| `playwright.headless` | `false` | Run without a visible window. The default headless shell cannot load extensions, so this keeps the full Chromium binary via Playwright's `chromium` channel (Playwright >= 1.49). |
+| `playwright.userDataDir` | `false` | Browser profile directory; `true` uses a shared cache dir under `process.cwd()`, `false` gives every launch a fresh temporary profile |
+| `playwright.devtools` | `false` | Auto-open DevTools for tabs |

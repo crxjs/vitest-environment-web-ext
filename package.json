@@ -43,6 +43,7 @@
     "lint:fix": "eslint --fix",
     "prepublishOnly": "nr build",
     "release": "bumpp",
+    "test": "vitest run",
     "typecheck": "tsc",
     "prepare": "simple-git-hooks"
   },

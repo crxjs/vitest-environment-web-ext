@@ -25,7 +25,11 @@ export class WebExtBrowserManager {
     }
 
     this._context = await chromium.launchPersistentContext(userDataDir, {
-      headless: false,
+      headless: this.options.headless,
+      // The bundled headless shell cannot load extensions, so headless runs
+      // keep the full Chromium binary via the `chromium` channel (Playwright
+      // >= 1.49), which runs Chrome's new headless mode.
+      channel: this.options.headless ? 'chromium' : undefined,
       slowMo: this.options.slowMo,
       args: webExtArgs,
     })
