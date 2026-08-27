@@ -1,5 +1,10 @@
 import type { WebExtEnvironmentOptions } from '@/options/types'
-import { exec } from 'tinyexec'
+import { spawn } from 'node:child_process'
+
+// Vitest instantiates the environment for every test file. When a worker
+// process is reused across files (`pool: 'threads'`), skip re-running the
+// same build command instead of compiling once per file.
+const compiledCommands = new Set<string>()
 
 /**
  * Compiles a web extension using the specified compiler command.
@@ -12,14 +17,31 @@ export async function compileWebExt(compiler: WebExtEnvironmentOptions['compiler
     return
   }
 
-  try {
-    const command = compiler.trim().split(/\s+/)
-    const { exitCode } = await exec(command[0], command.slice(1))
-    if (exitCode !== 0) {
-      throw new Error(`Compilation failed with exit code ${exitCode}`)
-    }
-  }
-  catch (error) {
-    throw new Error(`Compilation failed: ${error instanceof Error ? error.message : error}`)
-  }
+  if (compiledCommands.has(compiler))
+    return
+  compiledCommands.add(compiler)
+
+  // Run through the shell so `compiler` behaves like a real shell command
+  // (quotes, env vars, `&&`, pipes, paths with spaces). Inherit stdio so
+  // build logs and errors are visible instead of being swallowed.
+  await new Promise<void>((resolve, reject) => {
+    const child = spawn(compiler, { stdio: 'inherit', shell: true })
+
+    child.once('error', (error) => {
+      reject(new Error(`Compilation failed: ${error.message}`))
+    })
+
+    child.once('close', (code, signal) => {
+      if (code === 0) {
+        resolve()
+      }
+      else {
+        reject(new Error(
+          signal
+            ? `Compilation terminated by signal ${signal}`
+            : `Compilation failed with exit code ${code}`,
+        ))
+      }
+    })
+  })
 }

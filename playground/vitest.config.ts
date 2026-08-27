@@ -8,6 +8,7 @@ export default defineConfig({
       'web-ext': {
         path: './dist',
         playwright: {
+          headless: true,
           devtools: true,
           userDataDir: true,
         },

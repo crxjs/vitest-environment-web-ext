@@ -35,7 +35,7 @@ class WebExtEnvironment implements Environment {
 
     return {
       teardown: () => {
-        browser.close()
+        return browser.close()
       },
     }
   }
@@ -44,3 +44,4 @@ class WebExtEnvironment implements Environment {
 const webExtEnvironment = new WebExtEnvironment()
 export default webExtEnvironment
 export { WebExtBrowser }
+export type { WebExtEnvironmentOptions, WebExtEnvironmentUserOptions } from './options'
