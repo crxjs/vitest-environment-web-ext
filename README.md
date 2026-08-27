@@ -52,6 +52,7 @@ export default defineConfig({
         path: './dist',
         compiler: false,
         autoLaunch: true,
+        extensionId: '',
         detectExtensionId: true,
         detectTimeout: 15_000,
         targetUrl: 'https://www.example.com',
@@ -72,10 +73,11 @@ export default defineConfig({
 | `path` | – (required) | Extension directory or `.crx`/`.xpi` file |
 | `compiler` | `false` | Shell command executed before tests run |
 | `autoLaunch` | `true` | Load and launch the browser + extension during environment setup |
-| `detectExtensionId` | `true` | Detect the extension id by opening a tab at `targetUrl`. Disable for offline/air-gapped environments or when `getPopupPage()` / `getSidePanelPage()` are not used. |
+| `extensionId` | – | Explicit extension id; skips detection entirely when set. Useful for offline environments or extensions without a service worker (e.g. Manifest V2) |
+| `detectExtensionId` | `true` | Detect the extension id by opening a tab at `targetUrl`. Disable for offline/air-gapped environments, when `getPopupPage()` / `getSidePanelPage()` are not used, or when `extensionId` is set |
 | `detectTimeout` | `15000` | Max time in ms spent detecting the extension id |
 | `targetUrl` | `'https://www.example.com'` | URL opened while detecting the id; the tab is closed automatically |
 | `playwright.slowMo` | `100` | Slow down Playwright operations (ms) |
-| `playwright.headless` | `false` | Run without a visible window. Chromium's default headless shell cannot load extensions, so this uses the full browser binary in its new headless mode (`--headless=new`, requires Chromium >= 112). |
+| `playwright.headless` | `false` | Run without a visible window. The default headless shell cannot load extensions, so this keeps the full Chromium binary via Playwright's `chromium` channel (Playwright >= 1.49). |
 | `playwright.userDataDir` | `false` | Browser profile directory; `true` uses a shared cache dir under `process.cwd()`, `false` gives every launch a fresh temporary profile |
 | `playwright.devtools` | `false` | Auto-open DevTools for tabs |

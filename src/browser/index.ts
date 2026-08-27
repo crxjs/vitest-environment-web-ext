@@ -35,9 +35,10 @@ export class WebExtBrowser {
   /**
    * Launches the browser and loads the web extension.
    *
-   * When `options.detectExtensionId` is disabled, no probe tab is opened and
-   * `getExtensionId()` stays empty; popup/side panel helpers then require an
-   * explicit id.
+   * When `options.extensionId` is set it is used directly and detection is
+   * skipped. Otherwise, when `options.detectExtensionId` is enabled, a probe
+   * tab is opened at `targetUrl` to detect the id; popup/side panel helpers
+   * fall back to the extension's service worker when it stays empty.
    * @param path - Optional path to the web extension directory. Defaults to options.path.
    */
   async launch(path?: string): Promise<void> {
@@ -45,7 +46,10 @@ export class WebExtBrowser {
       return
     this.loader.load(path ?? this.options.path)
     this._context = await this.manager.launch(this.loader.extensionPath)
-    if (this.options.detectExtensionId) {
+    if (this.options.extensionId) {
+      this.extensionId = this.options.extensionId
+    }
+    else if (this.options.detectExtensionId) {
       this.extensionId = await this.loader.getExtensionId(this.context, this.options.targetUrl, {
         timeout: this.options.detectTimeout,
       })
@@ -111,8 +115,9 @@ export class WebExtBrowser {
     const id = worker?.url().match(/chrome-extension:\/\/([^/]+)/)?.[1]
     if (!id) {
       throw new Error(
-        'Could not determine the extension id. Enable detectExtensionId or '
-        + 'make sure the extension registers a service worker.',
+        'Could not determine the extension id. Configure the `extensionId` '
+        + 'option, enable `detectExtensionId`, or check that the extension '
+        + `at '${this.loader.extensionPath}' is built and registers a service worker.`,
       )
     }
     this.extensionId = id

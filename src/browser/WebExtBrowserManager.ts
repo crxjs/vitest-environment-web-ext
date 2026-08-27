@@ -24,15 +24,12 @@ export class WebExtBrowserManager {
       webExtArgs.push('--auto-open-devtools-for-tabs')
     }
 
-    if (this.options.headless) {
-      // Chromium's bundled headless shell cannot load extensions, so keep the
-      // full browser binary (`headless: false` below) and let its new
-      // headless mode do the work instead. Requires Chromium >= 112.
-      webExtArgs.unshift('--headless=new')
-    }
-
     this._context = await chromium.launchPersistentContext(userDataDir, {
-      headless: false,
+      headless: this.options.headless,
+      // The bundled headless shell cannot load extensions, so headless runs
+      // keep the full Chromium binary via the `chromium` channel (Playwright
+      // >= 1.49), which runs Chrome's new headless mode.
+      channel: this.options.headless ? 'chromium' : undefined,
       slowMo: this.options.slowMo,
       args: webExtArgs,
     })

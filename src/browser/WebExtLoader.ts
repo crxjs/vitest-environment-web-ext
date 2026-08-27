@@ -74,10 +74,10 @@ export class WebExtLoader {
    * Detects the extension id.
    *
    * Prefers an already registered service worker; otherwise opens one tab at
-   * `targetUrl` and waits (bounded by `timeout`) for either that tab's
-   * navigation or any extension-origin request to reveal the id. The tab is
-   * always closed before returning, and the whole detection resolves within
-   * the timeout even if the network is unreachable.
+   * `targetUrl` and waits (hard-bounded by `timeout`) for any extension-origin
+   * request to reveal the id. The tab is always closed before returning, and
+   * the whole detection resolves within the timeout even if the network is
+   * unreachable.
    */
   async getExtensionId(
     context: BrowserContext,
@@ -102,13 +102,25 @@ export class WebExtLoader {
       .then(req => this.extractExtensionId(req.url()) ?? '')
       .catch(() => '')
 
-    const page = await context.newPage()
-    await page.goto(targetUrl).catch(() => {})
+    const page = await context.newPage().catch(() => undefined)
+    if (page) {
+      // navigate in the background: `requestPromise` is the hard bound, and
+      // page.goto has its own (longer) timeout that would defeat `detectTimeout`
+      void page.goto(targetUrl).catch(() => {})
+    }
 
-    // bounded: waitForEvent rejects with the timeout and `.catch` swallows it
     const id = await requestPromise
 
-    await page.close().catch(() => {})
+    if (page)
+      await page.close().catch(() => {})
+
+    if (!id) {
+      console.warn(
+        `[web-ext] Could not detect the extension id within ${timeout}ms. `
+        + 'Configure `extensionId`, check the extension `path`/`targetUrl`, '
+        + 'or disable `detectExtensionId` if it is not needed.',
+      )
+    }
 
     return id
   }

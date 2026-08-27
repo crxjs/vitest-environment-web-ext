@@ -31,13 +31,23 @@ declare module 'vitest/node' {
        */
       autoLaunch?: boolean
       /**
+       * Explicit extension id to use instead of probing the browser.
+       *
+       * When set, extension-id detection is skipped entirely. Useful for
+       * offline/air-gapped environments or extensions that never register a
+       * service worker (e.g. Manifest V2).
+       *
+       * @default undefined
+       */
+      extensionId?: string
+      /**
        * Whether to detect the extension id by opening a browser tab that
        * navigates to `targetUrl`.
        *
        * Disable when tests never use `getPopupPage()` / `getSidePanelPage()`
        * and you want launches to work without any network access (e.g. in
-       * offline CI or behind a firewall), or when a fixture loads pages before
-       * the launch finishes.
+       * offline CI or behind a firewall), when a fixture loads pages before
+       * the launch finishes, or when `extensionId` is already configured.
        *
        * @default true
        */
@@ -77,9 +87,9 @@ declare module 'vitest/node' {
         /**
          * Run the browser without a visible window.
          *
-         * Chromium's default headless shell cannot load extensions, so this
-         * relaunches the full browser binary in its new headless mode via the
-         * `--headless=new` argument. Requires Chromium >= 112.
+         * The bundled headless shell cannot load extensions, so this keeps the
+         * full Chromium binary via Playwright's `chromium` channel (requires
+         * Playwright >= 1.49).
          *
          * @default false
          */
