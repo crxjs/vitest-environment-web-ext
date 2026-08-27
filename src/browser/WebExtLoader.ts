@@ -1,8 +1,6 @@
-import type { BrowserContext } from 'playwright'
+import type { BrowserContext, Worker } from 'playwright'
 import path from 'node:path'
 import fs from 'fs-extra'
-
-const EXTENSION_URL_PREFIX = 'chrome-extension://'
 
 interface WebExtManifest {
   action?: { default_popup?: string }
@@ -73,11 +71,11 @@ export class WebExtLoader {
   /**
    * Detects the extension id.
    *
-   * Prefers an already registered service worker; otherwise opens one tab at
-   * `targetUrl` and waits (hard-bounded by `timeout`) for any extension-origin
-   * request to reveal the id. The tab is always closed before returning, and
-   * the whole detection resolves within the timeout even if the network is
-   * unreachable.
+   * Prefers an already registered service worker; otherwise races the
+   * extension's service worker registering (MV3) against any extension-origin
+   * request (MV2 / content-script fetches) while a probe tab navigates to
+   * `targetUrl`. The tab is always closed before returning, and the whole
+   * detection resolves within the timeout even if the network is unreachable.
    */
   async getExtensionId(
     context: BrowserContext,
@@ -86,30 +84,46 @@ export class WebExtLoader {
   ): Promise<string> {
     const timeout = options.timeout ?? 15_000
 
-    // fast path: a registered service worker exposes the extension origin
-    const [worker] = context.serviceWorkers()
-    if (worker) {
-      const id = this.extractExtensionId(worker.url())
-      if (id)
-        return id
-    }
+    const idFromWorker = (worker: Worker | undefined) =>
+      worker ? this.extractExtensionId(worker.url()) : undefined
 
-    const requestPromise = context
-      .waitForEvent('request', {
-        predicate: req => req.url().startsWith(EXTENSION_URL_PREFIX),
-        timeout,
-      })
-      .then(req => this.extractExtensionId(req.url()) ?? '')
-      .catch(() => '')
+    // fast path: a registered service worker exposes the extension origin
+    const existingId = idFromWorker(context.serviceWorkers()[0])
+    if (existingId)
+      return existingId
+
+    // wait for either a matching extension service worker or an
+    // extension-origin request; predicates keep non-extension events from
+    // short-circuiting the race with a false negative
+    const detectionPromise = Promise.race([
+      context
+        .waitForEvent('serviceworker', {
+          predicate: worker => Boolean(this.extractExtensionId(worker.url())),
+          timeout,
+        })
+        .then(worker => this.extractExtensionId(worker.url()) ?? ''),
+      context
+        .waitForEvent('request', {
+          predicate: req => Boolean(this.extractExtensionId(req.url())),
+          timeout,
+        })
+        .then(req => this.extractExtensionId(req.url()) ?? ''),
+    ]).catch(() => '')
+
+    // close the snapshot/listener race: if the worker registered between the
+    // snapshot above and the listeners being attached, resolve immediately
+    const recheckId = idFromWorker(context.serviceWorkers()[0])
+    if (recheckId)
+      return recheckId
 
     const page = await context.newPage().catch(() => undefined)
     if (page) {
-      // navigate in the background: `requestPromise` is the hard bound, and
+      // navigate in the background: `detectionPromise` is the hard bound, and
       // page.goto has its own (longer) timeout that would defeat `detectTimeout`
       void page.goto(targetUrl).catch(() => {})
     }
 
-    const id = await requestPromise
+    const id = await detectionPromise
 
     if (page)
       await page.close().catch(() => {})

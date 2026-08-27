@@ -59,8 +59,8 @@ export class WebExtBrowser {
   /**
    * Closes the browser and cleans up resources.
    */
-  close(): void {
-    this.manager.close()
+  async close(): Promise<void> {
+    await this.manager.close()
   }
 
   /**
@@ -95,12 +95,14 @@ export class WebExtBrowser {
    * Gets the service worker of the extension.
    * @returns The service worker as a Playwright Worker.
    */
-  async getServiceWorker() {
-    let [serviceWorker] = this.context.serviceWorkers() || []
-    if (!serviceWorker) {
-      serviceWorker = await this.context.waitForEvent('serviceworker')
-    }
-    return serviceWorker
+  async getServiceWorker(timeout?: number) {
+    const [serviceWorker] = this.context.serviceWorkers()
+    if (serviceWorker)
+      return serviceWorker
+    return await this.context.waitForEvent(
+      'serviceworker',
+      timeout === undefined ? undefined : { timeout },
+    )
   }
 
   /**
@@ -110,8 +112,10 @@ export class WebExtBrowser {
     if (this.extensionId)
       return this.extensionId
     // detection may have been skipped or failed; fall back to waiting for the
-    // extension to register its service worker so helpers keep working
-    const worker = await this.getServiceWorker().catch(() => null)
+    // extension to register its service worker so helpers keep working.
+    // Hard-bound the wait so extensions without a service worker fail fast
+    // instead of hanging for Playwright's default 30s timeout.
+    const worker = await this.getServiceWorker(this.options.detectTimeout).catch(() => null)
     const id = worker?.url().match(/chrome-extension:\/\/([^/]+)/)?.[1]
     if (!id) {
       throw new Error(

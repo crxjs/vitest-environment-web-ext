@@ -8,8 +8,12 @@ export class WebExtFactory {
     url: string,
     extensionId?: string,
   ): Promise<Page> {
+    if (!extensionId) {
+      throw new Error('Cannot open an extension page without an extension id.')
+    }
     const page = await context.newPage()
-    await page.goto(`${EXTENSION_URL_PREFIX}${extensionId}/${url}`)
+    const normalizedUrl = url.replace(/^\/+/, '')
+    await page.goto(`${EXTENSION_URL_PREFIX}${extensionId}/${normalizedUrl}`)
     return page
   }
 }

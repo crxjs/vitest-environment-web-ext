@@ -1,4 +1,5 @@
 import type { EnvironmentOptions } from 'vitest/node'
+import path from 'pathe'
 import { describe, expect, it } from 'vitest'
 import { resolveOptions } from '../src/options'
 
@@ -42,5 +43,29 @@ describe('resolveOptions', () => {
   it('throws when path is missing', () => {
     const options = {} as EnvironmentOptions['web-ext']
     expect(() => resolveOptions(options)).toThrow(/path.*required/i)
+  })
+
+  it('keeps defaults when user options are explicitly undefined', () => {
+    const options = resolveOptions({
+      path: './dist',
+      targetUrl: undefined,
+      detectTimeout: undefined,
+      playwright: {
+        userDataDir: undefined,
+      },
+    })
+
+    expect(options.targetUrl).toBe('https://www.example.com')
+    expect(options.detectTimeout).toBe(15_000)
+    expect(options.playwright.userDataDir).toBe('')
+  })
+
+  it('uses a per-test-file profile directory for userDataDir: true', () => {
+    const options = resolveOptions({ path: './dist', playwright: { userDataDir: true } })
+    const cacheRoot = path.join(process.cwd(), '.vitest-web-ext-cache')
+
+    expect(options.playwright.userDataDir).toContain(cacheRoot)
+    // must not point two test files at the exact same Chromium profile
+    expect(options.playwright.userDataDir).not.toBe(cacheRoot)
   })
 })

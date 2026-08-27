@@ -54,4 +54,26 @@ describe('webExtLoader getExtensionId', () => {
     ).resolves.toBe('def456')
     expect(close).toHaveBeenCalledOnce()
   })
+
+  it('detects the id when the service worker registers after launch', async () => {
+    let resolveWorker!: (worker: unknown) => void
+    const close = vi.fn(async () => {})
+    const context = {
+      serviceWorkers: () => [],
+      newPage: async () => ({ goto: () => new Promise<never>(() => {}), close }),
+      waitForEvent: vi.fn((event: string) => {
+        if (event === 'serviceworker')
+          return new Promise((resolve) => { resolveWorker = resolve })
+        // no extension-origin requests are ever made
+        return new Promise(() => {})
+      }),
+    } as unknown as BrowserContext
+    const loader = new WebExtLoader()
+
+    const promise = loader.getExtensionId(context, 'https://www.example.com', { timeout: 1000 })
+    resolveWorker({ url: () => 'chrome-extension://abc123/manifest.json' })
+
+    await expect(promise).resolves.toBe('abc123')
+    expect(close).toHaveBeenCalledOnce()
+  })
 })

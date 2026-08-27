@@ -6,7 +6,4 @@ export default defineConfig({
   ],
   dts: true,
   publint: true,
-  external: [
-    '@dcloudio/uni-automator',
-  ],
 })
