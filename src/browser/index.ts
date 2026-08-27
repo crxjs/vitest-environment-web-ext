@@ -34,12 +34,22 @@ export class WebExtBrowser {
 
   /**
    * Launches the browser and loads the web extension.
+   *
+   * When `options.detectExtensionId` is disabled, no probe tab is opened and
+   * `getExtensionId()` stays empty; popup/side panel helpers then require an
+   * explicit id.
    * @param path - Optional path to the web extension directory. Defaults to options.path.
    */
   async launch(path?: string): Promise<void> {
+    if (this._context)
+      return
     this.loader.load(path ?? this.options.path)
     this._context = await this.manager.launch(this.loader.extensionPath)
-    this.extensionId = await this.loader.getExtensionId(this.context, this.options.targetUrl)
+    if (this.options.detectExtensionId) {
+      this.extensionId = await this.loader.getExtensionId(this.context, this.options.targetUrl, {
+        timeout: this.options.detectTimeout,
+      })
+    }
   }
 
   /**
@@ -62,8 +72,9 @@ export class WebExtBrowser {
    * @returns The popup page as a Playwright Page.
    */
   async getPopupPage(): Promise<Page> {
+    const id = await this.requireExtensionId()
     const popupPath = await this.loader.getPopupPath()
-    return this.factory.createExtPage(this.context, popupPath, this.extensionId)
+    return this.factory.createExtPage(this.context, popupPath, id)
   }
 
   /**
@@ -71,8 +82,9 @@ export class WebExtBrowser {
    * @returns The side panel page as a Playwright Page.
    */
   async getSidePanelPage(): Promise<Page> {
+    const id = await this.requireExtensionId()
     const sidePanelPath = await this.loader.getSidePanelPath()
-    return this.factory.createExtPage(this.context, sidePanelPath, this.extensionId)
+    return this.factory.createExtPage(this.context, sidePanelPath, id)
   }
 
   /**
@@ -85,5 +97,25 @@ export class WebExtBrowser {
       serviceWorker = await this.context.waitForEvent('serviceworker')
     }
     return serviceWorker
+  }
+
+  /**
+   * Waits for a detected extension id when one is required by page helpers.
+   */
+  private async requireExtensionId(): Promise<string> {
+    if (this.extensionId)
+      return this.extensionId
+    // detection may have been skipped or failed; fall back to waiting for the
+    // extension to register its service worker so helpers keep working
+    const worker = await this.getServiceWorker().catch(() => null)
+    const id = worker?.url().match(/chrome-extension:\/\/([^/]+)/)?.[1]
+    if (!id) {
+      throw new Error(
+        'Could not determine the extension id. Enable detectExtensionId or '
+        + 'make sure the extension registers a service worker.',
+      )
+    }
+    this.extensionId = id
+    return id
   }
 }

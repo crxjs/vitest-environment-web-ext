@@ -2,6 +2,8 @@ import type { BrowserContext } from 'playwright'
 import path from 'node:path'
 import fs from 'fs-extra'
 
+const EXTENSION_URL_PREFIX = 'chrome-extension://'
+
 interface WebExtManifest {
   action?: { default_popup?: string }
   browser_action?: { default_popup?: string }
@@ -16,26 +18,10 @@ export class WebExtLoader {
   }
 
   load(extensionPath: string): void {
-    const resolvedPath = path.resolve(extensionPath)
-    this.validate(resolvedPath)
-    this._extensionPath = resolvedPath
-  }
-
-  private validate(extPath: string): void {
-    const manifestPath = path.join(extPath, 'manifest.json')
-
-    if (!fs.existsSync(extPath)) {
-      throw new Error(`Extension path does not exist: ${extPath}`)
-    }
-
-    const stat = fs.statSync(extPath)
-    if (!stat.isDirectory()) {
-      throw new Error(`Extension path must be a directory: ${extPath}`)
-    }
-
-    if (!fs.existsSync(manifestPath)) {
-      throw new Error(`Extension manifest.json not found at: ${manifestPath}`)
-    }
+    // resolved but not validated here: `build --watch` style flows launch the
+    // browser before the output directory exists, and Chromium reports a bad
+    // --load-extension path loudly enough on its own
+    this._extensionPath = path.resolve(extensionPath)
   }
 
   async getManifest(): Promise<WebExtManifest> {
@@ -44,6 +30,11 @@ export class WebExtLoader {
     }
 
     const manifestPath = path.join(this._extensionPath, 'manifest.json')
+
+    if (!fs.existsSync(manifestPath)) {
+      throw new Error(`Extension manifest.json not found at: ${manifestPath}`)
+    }
+
     return await fs.readJson(manifestPath)
   }
 
@@ -79,28 +70,46 @@ export class WebExtLoader {
     return url.match(/chrome-extension:\/\/([^/]+)/)?.[1]
   }
 
-  async getExtensionId(context: BrowserContext, targetUrl: string): Promise<string> {
-    const workers = context.serviceWorkers()[0]
-    if (workers) {
-      const id = this.extractExtensionId(workers.url())
+  /**
+   * Detects the extension id.
+   *
+   * Prefers an already registered service worker; otherwise opens one tab at
+   * `targetUrl` and waits (bounded by `timeout`) for either that tab's
+   * navigation or any extension-origin request to reveal the id. The tab is
+   * always closed before returning, and the whole detection resolves within
+   * the timeout even if the network is unreachable.
+   */
+  async getExtensionId(
+    context: BrowserContext,
+    targetUrl: string,
+    options: { timeout?: number } = {},
+  ): Promise<string> {
+    const timeout = options.timeout ?? 15_000
+
+    // fast path: a registered service worker exposes the extension origin
+    const [worker] = context.serviceWorkers()
+    if (worker) {
+      const id = this.extractExtensionId(worker.url())
       if (id)
         return id
     }
 
-    const extensionUrlPromise = context.waitForEvent('request', req =>
-      req.url().startsWith('chrome-extension://'))
+    const requestPromise = context
+      .waitForEvent('request', {
+        predicate: req => req.url().startsWith(EXTENSION_URL_PREFIX),
+        timeout,
+      })
+      .then(req => this.extractExtensionId(req.url()) ?? '')
+      .catch(() => '')
 
     const page = await context.newPage()
-    const navigationPromise = page.goto(targetUrl)
+    await page.goto(targetUrl).catch(() => {})
 
-    try {
-      await Promise.race([extensionUrlPromise, navigationPromise])
-      const req = await extensionUrlPromise
-      return this.extractExtensionId(req.url()) ?? ''
-    }
-    catch (error) {
-      console.error(error)
-      return ''
-    }
+    // bounded: waitForEvent rejects with the timeout and `.catch` swallows it
+    const id = await requestPromise
+
+    await page.close().catch(() => {})
+
+    return id
   }
 }

@@ -22,10 +22,13 @@ export function resolveOptions(options: EnvironmentOptions['web-ext']): WebExtEn
   const defaultOptions: Partial<WebExtEnvironmentOptions> = {
     compiler: false,
     autoLaunch: true,
+    detectExtensionId: true,
+    detectTimeout: 15_000,
     targetUrl: 'https://www.example.com',
     playwright: {
       // browser: 'chromium',
       slowMo: 100,
+      headless: false,
       userDataDir: false,
       devtools: false,
     },

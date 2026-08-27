@@ -31,13 +31,33 @@ declare module 'vitest/node' {
        */
       autoLaunch?: boolean
       /**
+       * Whether to detect the extension id by opening a browser tab that
+       * navigates to `targetUrl`.
+       *
+       * Disable when tests never use `getPopupPage()` / `getSidePanelPage()`
+       * and you want launches to work without any network access (e.g. in
+       * offline CI or behind a firewall), or when a fixture loads pages before
+       * the launch finishes.
+       *
+       * @default true
+       */
+      detectExtensionId?: boolean
+      /**
        * URL used to automatically retrieve the extension ID.
        *
        * Configure a URL that can trigger the browser extension when automatic extension ID retrieval fails.
        *
+       * The tab opened for detection is closed automatically once the id is found.
+       *
        * @default 'https://www.example.com'
        */
       targetUrl?: string
+      /**
+       * Maximum time in milliseconds spent detecting the extension id.
+       *
+       * @default 15000
+       */
+      detectTimeout?: number
       /**
        * Options for Playwright.
        */
@@ -55,11 +75,21 @@ declare module 'vitest/node' {
          */
         slowMo?: number
         /**
+         * Run the browser without a visible window.
+         *
+         * Chromium's default headless shell cannot load extensions, so this
+         * relaunches the full browser binary in its new headless mode via the
+         * `--headless=new` argument. Requires Chromium >= 112.
+         *
+         * @default false
+         */
+        headless?: boolean
+        /**
          * Directory to cache the browser user data.
          *
          * - `true`: Use default path `path.join(process.cwd(), './.vitest-web-ext-cache')`
          * - `string`: Use custom path
-         * - `false`: Disable caching
+         * - `false`: Every launch gets a fresh temporary profile directory
          *
          * @default false
          */

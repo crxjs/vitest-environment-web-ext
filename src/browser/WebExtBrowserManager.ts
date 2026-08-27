@@ -24,6 +24,13 @@ export class WebExtBrowserManager {
       webExtArgs.push('--auto-open-devtools-for-tabs')
     }
 
+    if (this.options.headless) {
+      // Chromium's bundled headless shell cannot load extensions, so keep the
+      // full browser binary (`headless: false` below) and let its new
+      // headless mode do the work instead. Requires Chromium >= 112.
+      webExtArgs.unshift('--headless=new')
+    }
+
     this._context = await chromium.launchPersistentContext(userDataDir, {
       headless: false,
       slowMo: this.options.slowMo,
