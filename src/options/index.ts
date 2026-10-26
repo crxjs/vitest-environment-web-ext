@@ -59,7 +59,8 @@ export function resolveOptions(options?: WebExtEnvironmentUserOptions): WebExtEn
     detectTimeout: 15_000,
     targetUrl: 'https://www.example.com',
     playwright: {
-      // browser: 'chromium',
+      browser: 'chromium',
+      executablePath: '',
       slowMo: 100,
       headless: false,
       userDataDir: false,
@@ -68,6 +69,13 @@ export function resolveOptions(options?: WebExtEnvironmentUserOptions): WebExtEn
   }
 
   const resolved = deepMerge(defaultOptions, omitUndefined(options ?? {})) as WebExtEnvironmentOptions
+
+  if (resolved.playwright.browser === 'firefox') {
+    for (const key of ['userDataDir', 'devtools', 'executablePath'] as const) {
+      if (resolved.playwright[key])
+        throw new Error(`Firefox does not support playwright.${key}; OpenPolyfill uses an isolated temporary profile and its pinned binary.`)
+    }
+  }
 
   if (resolved.playwright?.userDataDir === true) {
     // Chromium forbids two browser instances sharing a user data directory,
