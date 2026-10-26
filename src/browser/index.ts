@@ -1,5 +1,6 @@
 import type { BrowserContext, Page } from 'playwright'
-import type { WebExtEnvironmentOptions } from '@/options/types'
+import type { WebExtEnvironmentOptions, WebExtEnvironmentUserOptions } from '@/options/types'
+import { resolveOptions } from '../options'
 import { WebExtBrowserManager } from './WebExtBrowserManager'
 import { WebExtFactory } from './WebExtFactory'
 import { WebExtLoader } from './WebExtLoader'
@@ -26,9 +27,12 @@ export class WebExtBrowser {
    * Creates a new WebExtBrowser instance.
    * @param options - Configuration options for the web extension environment.
    */
-  constructor(private options: WebExtEnvironmentOptions) {
+  private options: WebExtEnvironmentOptions
+
+  constructor(options: WebExtEnvironmentUserOptions) {
+    this.options = resolveOptions(options)
     this.loader = new WebExtLoader()
-    this.manager = new WebExtBrowserManager(options.playwright)
+    this.manager = new WebExtBrowserManager(this.options.playwright)
     this.factory = new WebExtFactory()
   }
 
@@ -45,14 +49,23 @@ export class WebExtBrowser {
     if (this._context)
       return
     this.loader.load(path ?? this.options.path)
-    this._context = await this.manager.launch(this.loader.extensionPath)
-    if (this.options.extensionId) {
-      this.extensionId = this.options.extensionId
+    try {
+      this._context = await this.manager.launch(this.loader.extensionPath)
+      if (this.manager.extensionURL) {
+        this.extensionId = new URL(this.manager.extensionURL).host
+      }
+      else if (this.options.extensionId) {
+        this.extensionId = this.options.extensionId
+      }
+      else if (this.options.detectExtensionId) {
+        this.extensionId = await this.loader.getExtensionId(this.context, this.options.targetUrl, {
+          timeout: this.options.detectTimeout,
+        })
+      }
     }
-    else if (this.options.detectExtensionId) {
-      this.extensionId = await this.loader.getExtensionId(this.context, this.options.targetUrl, {
-        timeout: this.options.detectTimeout,
-      })
+    catch (error) {
+      await this.close()
+      throw error
     }
   }
 
@@ -60,7 +73,13 @@ export class WebExtBrowser {
    * Closes the browser and cleans up resources.
    */
   async close(): Promise<void> {
-    await this.manager.close()
+    try {
+      await this.manager.close()
+    }
+    finally {
+      this._context = null
+      this.extensionId = ''
+    }
   }
 
   /**
@@ -78,7 +97,7 @@ export class WebExtBrowser {
   async getPopupPage(): Promise<Page> {
     const id = await this.requireExtensionId()
     const popupPath = await this.loader.getPopupPath()
-    return this.factory.createExtPage(this.context, popupPath, id)
+    return this.factory.createExtPage(this.context, popupPath, id, this.options.playwright.browser)
   }
 
   /**
@@ -88,7 +107,24 @@ export class WebExtBrowser {
   async getSidePanelPage(): Promise<Page> {
     const id = await this.requireExtensionId()
     const sidePanelPath = await this.loader.getSidePanelPath()
-    return this.factory.createExtPage(this.context, sidePanelPath, id)
+    return this.factory.createExtPage(this.context, sidePanelPath, id, this.options.playwright.browser)
+  }
+
+  /** Browser-aware URL, including extensions without a background. */
+  async getExtensionURL(path = ''): Promise<string> {
+    const id = await this.requireExtensionId()
+    const scheme = this.options.playwright.browser === 'firefox' ? 'moz-extension' : 'chrome-extension'
+    return `${scheme}://${id}/${path.replace(/^\/+/, '')}`
+  }
+
+  /** Firefox background document or Chromium service worker. Evaluations are never replayed. */
+  async getBackground(timeout?: number) {
+    if (this.options.playwright.browser === 'firefox') {
+      // Accessing context also validates the launch lifecycle.
+      void this.context
+      return this.manager.background
+    }
+    return this.getServiceWorker(timeout)
   }
 
   /**

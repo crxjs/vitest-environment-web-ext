@@ -27,14 +27,19 @@
     "./package.json": "./package.json",
     "./types": {
       "types": "./global.d.ts"
-    }
+    },
+    "./firefox": "./dist/firefox.mjs"
   },
   "main": "./dist/index.mjs",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.mts",
+  "bin": {
+    "web-ext-firefox": "./scripts/firefox.mjs"
+  },
   "files": [
     "dist",
-    "global.d.ts"
+    "global.d.ts",
+    "scripts/firefox.mjs"
   ],
   "scripts": {
     "build": "tsdown",
@@ -45,17 +50,20 @@
     "release": "bumpp",
     "test": "vitest run",
     "typecheck": "tsc",
-    "prepare": "simple-git-hooks"
+    "prepare": "pnpm build && simple-git-hooks"
   },
   "peerDependencies": {
     "playwright": "*",
     "vitest": "*"
   },
   "dependencies": {
+    "@openpolyfill/firefox-addon-playwright-harness": "0.3.0",
+    "@playwright/test": "1.64.1",
     "fs-extra": "^11.3.3",
     "jsesc": "^3.1.0",
     "pathe": "^2.0.3",
-    "playwright": "^1.58.2"
+    "playwright": "1.64.1",
+    "playwright-core": "1.64.1"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^6.6.1",

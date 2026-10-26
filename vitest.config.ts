@@ -9,5 +9,13 @@ export default defineConfig({
   },
   test: {
     include: ['test/**/*.test.ts'],
+    fileParallelism: false,
+    environmentOptions: {
+      'web-ext': {
+        path: '.',
+        autoLaunch: false,
+        playwright: { browser: 'firefox', headless: true, slowMo: 0 },
+      },
+    },
   },
 })
