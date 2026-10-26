@@ -2,9 +2,12 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
+
   pull_request:
-    branches: [main]
+    branches:
+      - main
 
 jobs:
   checks:
@@ -12,6 +15,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        # CRXJS consumes Vitest 3; this library develops against Vitest 4.
         vitest: [3.2.7, 4.0.18]
     steps:
       - uses: actions/checkout@v4
@@ -22,6 +26,7 @@ jobs:
         with:
           node-version: '22'
           cache: pnpm
+
       - run: pnpm install --frozen-lockfile --ignore-scripts
       - run: pnpm add -D vitest@${{ matrix.vitest }} --ignore-scripts
       - run: pnpm lint
