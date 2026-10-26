@@ -30,3 +30,8 @@ No in-flight evaluation is automatically replayed after actor replacement.
 
 Both Vitest versions are also checked in CI. Publication and consumer migration
 are separate steps; this change does not publish a package or merge either PR.
+
+A further lifecycle regression models a slow browser/profile close, as observed
+in Windows E2E. The public API test failed when relaunch returned the closing
+context and late cleanup cleared it; it passes when relaunch waits for the shared
+close promise. Concurrent close calls now perform cleanup once.

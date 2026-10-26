@@ -136,6 +136,8 @@ Playwright JSHandles and DOM handles are not supported by the Firefox evaluator.
 Firefox profiles, debugger ports, temporary add-on installation, RDP listeners
 and browser cleanup belong to the library. `close()` is idempotent, environment
 teardown calls it automatically, and an instance can launch again after closing.
+`launch()` waits for pending cleanup, and concurrent `close()` calls await the
+same cleanup operation so an old close cannot clear a replacement context.
 Firefox rejects Chromium-only `userDataDir`, `devtools` and `executablePath`
 options rather than silently ignoring them. `playwright.executablePath` remains
 available for Chromium consumers that install their own Chromium binary.

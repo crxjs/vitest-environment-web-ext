@@ -11,6 +11,7 @@ export class WebExtBrowser {
   private factory: WebExtFactory
   private _context: BrowserContext | null = null
   private extensionId: string = ''
+  private closing?: Promise<void>
 
   /**
    * Gets the Playwright browser context.
@@ -46,6 +47,7 @@ export class WebExtBrowser {
    * @param path - Optional path to the web extension directory. Defaults to options.path.
    */
   async launch(path?: string): Promise<void> {
+    await this.closing
     if (this._context)
       return
     this.loader.load(path ?? this.options.path)
@@ -72,14 +74,15 @@ export class WebExtBrowser {
   /**
    * Closes the browser and cleans up resources.
    */
-  async close(): Promise<void> {
-    try {
-      await this.manager.close()
-    }
-    finally {
-      this._context = null
-      this.extensionId = ''
-    }
+  close(): Promise<void> {
+    if (!this._context)
+      return this.closing ?? Promise.resolve()
+    this._context = null
+    this.extensionId = ''
+    this.closing = this.manager.close().finally(() => {
+      this.closing = undefined
+    })
+    return this.closing
   }
 
   /**
