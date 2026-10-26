@@ -123,7 +123,8 @@ constructor accepts the same partial user options, with `path` required.
 `getExtensionURL()` and popup helpers use the installed Firefox UUID, including
 for extensions without a background. `getExtensionId()` returns that URL host,
 not the manifest add-on ID. `getBackground()` returns `undefined` when Firefox
-has no background; in Chromium it waits for a service worker (optional timeout).
+has no background; in Chromium it waits for a declared service worker (optional
+timeout), or returns `undefined` when no worker is declared.
 
 A background exposes `evaluate(functionOrExpression, serializableArgument?)`
 and `url()`. Firefox uses an RDP background document rather than a service

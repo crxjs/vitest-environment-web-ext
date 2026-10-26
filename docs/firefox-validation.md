@@ -35,3 +35,9 @@ A further lifecycle regression models a slow browser/profile close, as observed
 in Windows E2E. The public API test failed when relaunch returned the closing
 context and late cleanup cleared it; it passes when relaunch waits for the shared
 close promise. Concurrent close calls now perform cleanup once.
+
+The background API now returns `undefined` immediately for Chromium manifests
+without a service worker as well. A real headless page-only extension test first
+failed with a worker-event timeout and passed with manifest-aware detection. This
+lets consumers explicitly await declared background startup without delaying
+extensions that have no background.

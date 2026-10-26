@@ -3,6 +3,7 @@ import path from 'node:path'
 import fs from 'fs-extra'
 
 interface WebExtManifest {
+  background?: { service_worker?: string }
   action?: { default_popup?: string }
   browser_action?: { default_popup?: string }
   side_panel?: { default_path?: string }

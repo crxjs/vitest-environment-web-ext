@@ -127,6 +127,9 @@ export class WebExtBrowser {
       void this.context
       return this.manager.background
     }
+    const manifest = await this.loader.getManifest()
+    if (!manifest.background?.service_worker)
+      return undefined
     return this.getServiceWorker(timeout)
   }
 

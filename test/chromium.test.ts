@@ -22,3 +22,13 @@ it('retains Chromium background and popup support across close and relaunch', as
   await browser.launch()
   expect(await (await browser.getPopupPage()).title()).toBe('Chromium popup')
 }, 60000)
+
+it('returns no background immediately for a page-only Chromium extension', async () => {
+  browser = new WebExtBrowser({
+    path: new URL('./fixtures/page-only', import.meta.url).pathname,
+    detectExtensionId: false,
+    playwright: { headless: true, slowMo: 0 },
+  })
+  await browser.launch()
+  expect(await browser.getBackground(100)).toBeUndefined()
+})
