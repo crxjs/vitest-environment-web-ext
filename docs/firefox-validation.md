@@ -22,6 +22,10 @@ popup URLs, temporary installation without a background, close/relaunch,
 recovery after installation failure, a retained background handle after
 `runtime.reload()`, and Chromium background/popup lifecycle support. The custom
 environment is exercised by Vitest itself, not only by calling `setup()` directly.
+A further deterministic transport regression test covers a replacement actor
+arriving during the parent-process URL lookup. It failed with the listener
+registered after lookup, and passed when registration moved before lookup; close
+also removes that listener. This adds one test to the 17-test baseline above.
 No in-flight evaluation is automatically replayed after actor replacement.
 
 Both Vitest versions are also checked in CI. Publication and consumer migration

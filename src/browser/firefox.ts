@@ -25,6 +25,7 @@ export async function launchFirefox(path: string, options: WebExtEnvironmentOpti
   }
   try {
     backgroundURL = await background?.evaluate<string>('location.href')
+    running.rdp.on('packet', onPacket)
     // The add-on id is not the moz-extension UUID. Query Firefox's registry so
     // page-only extensions work without needing a background or network probe.
     const process = await running.rdp.root.getProcess(0)
@@ -40,7 +41,6 @@ export async function launchFirefox(path: string, options: WebExtEnvironmentOpti
     finally {
       parent.dispose()
     }
-    running.rdp.on('packet', onPacket)
     const worker: Pick<Worker, 'evaluate' | 'url'> | undefined = background && {
       evaluate: (async (fn: Parameters<RdpEvaluation['evaluate']>[0], arg?: unknown) => {
         await ready
@@ -65,6 +65,7 @@ export async function launchFirefox(path: string, options: WebExtEnvironmentOpti
     }
   }
   catch (error) {
+    running.rdp.off('packet', onPacket)
     background?.dispose()
     await running.close()
     throw error
