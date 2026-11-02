@@ -1,8 +1,14 @@
 import type { BrowserContext } from 'playwright'
+import type { launchFirefox } from './firefox'
 import type { WebExtEnvironmentOptions } from '@/options/types'
 import { chromium } from 'playwright'
 
 export class WebExtBrowserManager {
+  private firefox: Awaited<ReturnType<typeof launchFirefox>> | undefined
+
+  get background() { return this.firefox?.background }
+  get extensionURL() { return this.firefox?.extensionURL }
+
   private _context: BrowserContext | null = null
 
   get context(): BrowserContext | null {
@@ -12,6 +18,12 @@ export class WebExtBrowserManager {
   constructor(private options: WebExtEnvironmentOptions['playwright']) {}
 
   async launch(extensionPath: string): Promise<BrowserContext> {
+    if (this.options.browser === 'firefox') {
+      const { launchFirefox } = await import('./firefox')
+      this.firefox = await launchFirefox(extensionPath, this.options)
+      this._context = this.firefox.context
+      return this._context
+    }
     const userDataDir = this.options.userDataDir as string
 
     const webExtArgs = [
@@ -31,6 +43,7 @@ export class WebExtBrowserManager {
       // >= 1.49), which runs Chrome's new headless mode.
       channel: this.options.headless ? 'chromium' : undefined,
       slowMo: this.options.slowMo,
+      executablePath: this.options.executablePath || undefined,
       args: webExtArgs,
     })
 
@@ -38,8 +51,14 @@ export class WebExtBrowserManager {
   }
 
   async close(): Promise<void> {
-    if (this._context) {
-      await this._context.close()
+    try {
+      if (this.firefox)
+        await this.firefox.close()
+      else
+        await this._context?.close()
+    }
+    finally {
+      this.firefox = undefined
       this._context = null
     }
   }

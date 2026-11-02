@@ -72,12 +72,10 @@ export interface WebExtEnvironmentUserOptions {
    * Options for Playwright.
    */
   playwright?: {
-    // /**
-    //  * Browser to use for testing.
-    //  *
-    //  * @default 'chromium'
-    //  */
-    // browser?: 'chromium' | 'firefox' | 'webkit'
+    /** Browser engine. Firefox uses OpenPolyfill and a temporary profile. */
+    browser?: 'chromium' | 'firefox'
+    /** Custom Chromium binary, for consumers with a separate Playwright install. */
+    executablePath?: string
     /**
      * Slow down Playwright operations by the given amount of milliseconds.
      *

@@ -69,3 +69,7 @@ describe('resolveOptions', () => {
     expect(options.playwright.userDataDir).not.toBe(cacheRoot)
   })
 })
+
+it('rejects unsupported persistent Firefox profiles instead of silently ignoring them', () => {
+  expect(() => resolveOptions({ path: './dist', playwright: { browser: 'firefox', userDataDir: true } })).toThrow(/Firefox.*userDataDir/)
+})
